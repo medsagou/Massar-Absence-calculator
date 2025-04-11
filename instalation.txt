@@ -1,0 +1,5 @@
+pip uninstall selenium-wire
+pip uninstall blinker
+
+pip install blinker==1.7.0
+pip install selenium-wire
