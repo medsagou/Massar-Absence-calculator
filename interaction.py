@@ -32,6 +32,7 @@ class Massar:
         self.password = lines[1].strip()
         return
 
+
     def get_driver(self):
         options = webdriver.ChromeOptions()
         options.add_argument("--headless=new")
@@ -41,26 +42,68 @@ class Massar:
 
         options.add_argument("--log-level=3")
 
-        # mobile_emulation = {
-        #     "deviceMetrics": {"width": 375, "height": 812, "pixelRatio": 3},
-        #     "userAgent": "Mozilla/5.0 (Linux; Android 10; Pixel 3)"
-        # }
-        # #
-        # options.add_experimental_option("mobileEmulation", mobile_emulation)
-        # mobile_ua = "Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.210 Mobile Safari/537.36"
-        # options.add_argument(f"user-agent={mobile_ua}")
+        mobile_emulation = {
+            "deviceMetrics": {"width": 375, "height": 812, "pixelRatio": 3},
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; Pixel 3)"
+        }
+        #
+        options.add_experimental_option("mobileEmulation", mobile_emulation)
+        mobile_ua = "Mozilla/5.0 (Linux; Android 10; Pixel 3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.210 Mobile Safari/537.36"
+        options.add_argument(f"user-agent={mobile_ua}")
 
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-blink-features=AutomationControlled")
 
+
+        def block_unwanted_requests(request):
+
+                # if request.url.endswith(('.jpg', '.png', '.gif', '.css')):
+                if request.url.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.css', '.woff', '.woff2', '.ttf')):
+                    request.abort()
+
+
+
+
+
         try:
             self.driver = webdriver.Chrome(options=options)
+            self.driver.request_interceptor = block_unwanted_requests
             # print("DRIVER IS DONE")
         except:
             print("line 42 interaction.py")
         else:
             return True
+    def calculate_usage(self):
+        print('here')
+        total_bytes = sum(len(request.response.body) for request in self.driver.requests if request.response)
+
+        # Convert bytes to MB
+        total_mb = total_bytes / (1024 * 1024)
+        total_data = 0
+        requests_data = []
+
+        for request in self.driver.requests:
+            if request.response:
+                request_size = len(request.body) if request.body else 0
+                response_size = len(request.response.body) if request.response.body else 0
+                total_size = request_size + response_size
+                total_data += total_size
+
+                # Save request details
+                requests_data.append((request.url, total_size))
+
+        # Sort by highest usage
+        requests_data.sort(key=lambda x: x[1], reverse=True)
+
+        # Print the top requests consuming the most data
+        print(f"Total data usage: {total_data / 1024:.2f} KB")
+        print("Top data-consuming requests:")
+        for url, size in requests_data[:10]:  # Show top 5 largest requests
+            print(f"{url} → {size / 1024:.2f} KB")
+
+        print(f"Total Data Transferred: {total_mb:.2f} MB")
+        return total_mb
 
     def get_site(self):
         # print("GETTING THE SITE")
@@ -225,6 +268,17 @@ class Massar:
                                         self.driver.find_element(By.XPATH, '//*[@id="Model_msg_Btn"]').click()
                                         print('closed clicked')
                                     try:
+                                        WebDriverWait(self.driver, 10).until(
+                                            EC.invisibility_of_element_located(
+                                                (
+                                                    By.ID, "loadingDiv",
+                                                )
+                                            )
+                                        )
+                                    except Exception as e:
+                                        pass
+
+                                    try:
                                         WebDriverWait(self.driver, 15).until(
                                             EC.element_to_be_clickable((By.CSS_SELECTOR,
                                                                         '#search > div > div > div > div.box-body > div.blocBtn > button'))
@@ -266,72 +320,82 @@ class Massar:
                                             select_element.select_by_visible_text(option.text)
                                             try:
                                                 WebDriverWait(self.driver, 3).until(
-                                                    EC.invisibility_of_element_located(
-                                                        (
-                                                            By.ID, "loadingDiv",
-                                                        )
-                                                    )
-                                                )
-                                            except Exception as e:
-                                                pass
-
-                                            try:
-                                                WebDriverWait(m.driver, 2).until(
-                                                    EC.presence_of_element_located((
-                                                        By.XPATH, '//*[@id="Model_msg_Btn"]'
-                                                    ))
-                                                )
-                                            except:
-                                                pass
-                                            else:
-                                                m.driver.find_element(By.XPATH, '//*[@id="Model_msg_Btn"]').click()
-                                                print('closed clicked')
-                                            try:
-                                                WebDriverWait(self.driver, 3).until(
                                                     EC.element_to_be_clickable((By.CSS_SELECTOR,
                                                                                 '#search > div > div > div > div.box-body > div.blocBtn > button'))
                                                 ).click()
                                             except:
-                                                try:
-                                                    WebDriverWait(m.driver, 2).until(
-                                                        EC.presence_of_element_located((
-                                                            By.XPATH, '//*[@id="Model_msg_Btn"]'
-                                                        ))
-                                                    )
-                                                except:
-                                                    pass
-                                                else:
-                                                    m.driver.find_element(By.XPATH, '//*[@id="Model_msg_Btn"]').click()
-                                                    print('closed clicked')
-
-                                            # self.searchBtn.click()
-                                            try:
-                                                WebDriverWait(self.driver, 3).until(
-                                                    EC.invisibility_of_element_located(
-                                                        (
-                                                            By.ID, "loadingDiv",
+                                                while True:
+                                                    try:
+                                                        WebDriverWait(self.driver, 1).until(
+                                                            EC.presence_of_element_located((
+                                                                By.XPATH, '//*[@id="Model_msg_Btn"]'
+                                                            ))
                                                         )
-                                                    )
-                                                )
-                                            except Exception as e:
-                                                pass
+                                                    except:
+                                                        break
+                                                    else:
+                                                        self.driver.find_element(By.XPATH, '//*[@id="Model_msg_Btn"]').click()
+                                                        print('closed clicked')
+                                                        try:
+                                                            WebDriverWait(self.driver, 3).until(
+                                                                EC.element_to_be_clickable((By.CSS_SELECTOR,
+                                                                                            '#search > div > div > div > div.box-body > div.blocBtn > button'))
+                                                            ).click()
+                                                        except:
+                                                            pass
                                             else:
                                                 try:
-                                                    WebDriverWait(m.driver, 1).until(
-                                                        EC.visibility_of_element_located((
-                                                            By.XPATH, '//*[@id="Model_msg_Btn"]'
-                                                        ))
+                                                    WebDriverWait(self.driver, 3).until(
+                                                        EC.invisibility_of_element_located(
+                                                            (
+                                                                By.ID, "loadingDiv",
+                                                            )
+                                                        )
                                                     )
-                                                except:
+                                                except Exception as e:
                                                     pass
                                                 else:
-                                                    m.driver.find_element(By.XPATH, '//*[@id="Model_msg_Btn"]').click()
-                                                    print('closed clicked')
+                                                    while True:
+                                                        try:
+                                                            WebDriverWait(self.driver, 1).until(
+                                                                EC.visibility_of_element_located((
+                                                                    By.XPATH, '//*[@id="Model_msg_Btn"]'
+                                                                ))
+                                                            )
+                                                        except:
+                                                            break
+                                                        else:
+                                                            self.driver.find_element(By.XPATH, '//*[@id="Model_msg_Btn"]').click()
+                                                            print('closed clicked')
+                                                            time.sleep(1)
+                                                            try:
+                                                                WebDriverWait(self.driver, 3).until(
+                                                                    EC.element_to_be_clickable((By.CSS_SELECTOR,
+                                                                                                '#search > div > div > div > div.box-body > div.blocBtn > button'))
+                                                                ).click()
+                                                            except:
+                                                                pass
+
+                                            # self.searchBtn.click()
+                                                # try:
+                                                #     WebDriverWait(m.driver, 5).until(
+                                                #         EC.presence_of_element_located((
+                                                #             By.XPATH, '//*[@id="Model_msg_Btn"]'
+                                                #         ))
+                                                #     )
+                                                # except:
+                                                #     print("here")
+                                                #     pass
+                                                # else:
+                                                #     m.driver.find_element(By.XPATH, '//*[@id="Model_msg_Btn"]').click()
+                                                #     print('closed clicked')
+
                                                 checkboxes = self.driver.find_elements(By.CSS_SELECTOR,
                                                                                        '#DataTables-Table-0 input[type="checkbox"][data-val="True"]')
-                                                count = len(checkboxes)
-                                                print(green(option.text), green(count))
-                                                log_message(str(option.text)+" : "+str(count))
+
+                                                # print(green(option.text), green(count))
+
+                                                log_message(str(option.text)+" : " +str(len(checkboxes)) )
                                         return
 if __name__ == "__main__":
     m = Massar()

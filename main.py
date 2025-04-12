@@ -12,7 +12,7 @@ class MassarApp:
         global_font = tkFont.Font(family="Arial", size=16)
         self.root.option_add("*Font", global_font)
         self.massar = ""
-        self.root.title("Massar Absence Checker")
+        self.root.title("SAGOU - Massar Absence Calculator")
 
         self.label_month = tk.Label(root, text="📅 Mois:")
         self.label_month.pack(pady=5)
@@ -24,7 +24,7 @@ class MassarApp:
         self.entry_class = tk.Entry(root)
         self.entry_class.pack(pady=5)
 
-        self.label_eleve = tk.Label(root, text=" Eleve:")
+        self.label_eleve = tk.Label(root, text="🔍 Eleve:")
         self.label_eleve.pack(pady=5)
         self.entry_eleve = tk.Entry(root)
         self.entry_eleve.pack(pady=5)
