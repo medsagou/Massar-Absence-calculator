@@ -33,7 +33,7 @@ class MassarApp:
         self.btn_start = tk.Button(root, text="🚀 Lancer", command=self.start_process)
         self.btn_start.pack(pady=10)
 
-        self.log = tk.Text(root, height=10, width=50)
+        self.log = tk.Text(root, height=40, width=50)
         self.log.pack(pady=10)
 
     def log_message(self, text):
