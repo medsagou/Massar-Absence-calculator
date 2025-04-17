@@ -327,7 +327,7 @@ class Massar:
                                                 while True:
                                                     try:
                                                         WebDriverWait(self.driver, 1).until(
-                                                            EC.presence_of_element_located((
+                                                            EC.element_to_be_clickable((
                                                                 By.XPATH, '//*[@id="Model_msg_Btn"]'
                                                             ))
                                                         )
